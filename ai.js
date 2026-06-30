@@ -1,40 +1,26 @@
 const fetch = require("node-fetch");
+const Parser = require("rss-parser");
 
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
-const MODEL = "claude-sonnet-4-6";
+const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
+const MISTRAL_URL = "https://api.mistral.ai/v1/chat/completions";
+const MISTRAL_MODEL = "mistral-small-latest";
 
-// ── Anthropic API call ────────────────────────────────────────────────────────
-async function callClaude(prompt, useSearch = false) {
-  const body = {
-    model: MODEL,
-    max_tokens: 4000,
-    messages: [{ role: "user", content: prompt }],
-  };
-  if (useSearch) body.tools = [{ type: "web_search_20250305", name: "web_search" }];
+const rssParser = new Parser({ timeout: 10000 });
 
-  const res = await fetch(ANTHROPIC_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": ANTHROPIC_API_KEY,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify(body),
-  });
-
-  const data = await res.json();
-  if (data.error) throw new Error(`Claude API [${data.error.type}]: ${data.error.message}`);
-  return (data.content || []).map(b => b.text || "").filter(Boolean).join("\n");
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function normalizeTitle(title) {
+  return (title || "")
+    .toLowerCase()
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .replace(/[^\w\s]/g, "")
+    .trim();
 }
 
-// ── Extract JSON array robustly ───────────────────────────────────────────────
 function extractJSON(text) {
   const clean = text.replace(/```json|```/gi, "").trim();
   const s = clean.indexOf("[");
   if (s === -1) throw new Error(`JSON array non trovato. Risposta: ${clean.slice(0, 200)}`);
   let jsonStr = clean.slice(s);
-  // Fix truncation: close array if missing
   const lastBrace = jsonStr.lastIndexOf("}");
   if (!jsonStr.trimEnd().endsWith("]") && lastBrace !== -1) {
     jsonStr = jsonStr.slice(0, lastBrace + 1) + "]";
@@ -42,48 +28,208 @@ function extractJSON(text) {
   return JSON.parse(jsonStr);
 }
 
-// ── Step 1: web search for real recent releases ───────────────────────────────
-async function searchRecentReleases(favorites, seenTitles) {
-  const favTitles = favorites.slice(0, 6).map(f => f.title).join(", ");
-  const today = new Date().toLocaleDateString("it-IT", { month: "long", year: "numeric" });
-  const seenList = seenTitles.length ? `NON includere questi titoli già mostrati in precedenza: ${seenTitles.slice(0, 30).join(", ")}.` : "";
+// ── Stadio 1: raccolta candidati da fonti gratuite ──────────────────────────
 
-  const prompt = `Cerca sul web le uscite REALI di fumetti, manga, bande dessinée e graphic novel degli ultimi 30 giorni (oggi: ${today}).
-Concentrati su opere adatte a un lettore che ama: ${favTitles}.
-Cerca presso: BAO Publishing, Coconino, J-Pop, Panini, Star Comics (Italia); Image, Fantagraphics, Drawn & Quarterly, First Second (USA); Casterman, Dargaud, Dupuis (Francia/Belgio); Kodansha, Viz, Shogakukan (Giappone). Solo edizioni in italiano o inglese.
-${seenList}
-Per ogni titolo trovato includi anche l'URL della pagina prodotto dell'editore o dell'articolo di annuncio.
-Restituisci un elenco testuale di 15 titoli reali con: titolo, autore, editore, data uscita, paese, descrizione breve, URL fonte.`;
-
-  return await callClaude(prompt, true);
+async function fetchFumettologica() {
+  const feed = await rssParser.parseURL("https://fumettologica.it/feed/");
+  return feed.items
+    .filter(i => /uscit/i.test(i.title || ""))
+    .map(i => ({
+      title: i.title,
+      author: null,
+      publisher: null,
+      type: "comics",
+      origin: "IT",
+      releaseDate: null,
+      language: "IT",
+      sourceUrl: i.link || null,
+    }));
 }
 
-// ── Step 2: structure as JSON (no tools) ─────────────────────────────────────
-async function structureReleases(rawText, favorites, excluded, seenTitles) {
+async function fetchMegaNerd() {
+  const feed = await rssParser.parseURL("https://www.meganerd.it/feed/");
+  return feed.items.map(i => ({
+    title: i.title,
+    author: null,
+    publisher: null,
+    type: "comics",
+    origin: "IT",
+    releaseDate: null,
+    language: "IT",
+    sourceUrl: i.link || null,
+  }));
+}
+
+async function fetchTheComicsJournal() {
+  const feed = await rssParser.parseURL("https://www.tcj.com/feed/");
+  return feed.items.map(i => ({
+    title: i.title,
+    author: null,
+    publisher: null,
+    type: "comics",
+    origin: "US",
+    releaseDate: null,
+    language: "EN",
+    sourceUrl: i.link || null,
+  }));
+}
+
+async function fetchTheBeat() {
+  const feed = await rssParser.parseURL("https://www.comicsbeat.com/feed/");
+  return feed.items
+    .filter(i => {
+      const cats = (i.categories || []).join(" ").toLowerCase();
+      return /comic|indie/.test(cats) || /comic|indie/i.test(i.title || "");
+    })
+    .map(i => ({
+      title: i.title,
+      author: null,
+      publisher: null,
+      type: "comics",
+      origin: "US",
+      releaseDate: null,
+      language: "EN",
+      sourceUrl: i.link || null,
+    }));
+}
+
+async function fetchAniList() {
+  const query = `
+    query {
+      Page(perPage: 25) {
+        media(type: MANGA, status: RELEASING, sort: START_DATE_DESC) {
+          title { english romaji }
+          staff { nodes { name { full } } }
+          startDate { year month day }
+          siteUrl
+        }
+      }
+    }
+  `;
+  const res = await fetch("https://graphql.anilist.co", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query }),
+  });
+  const data = await res.json();
+  const media = data?.data?.Page?.media || [];
+  return media.map(m => ({
+    title: m.title.english || m.title.romaji,
+    author: m.staff?.nodes?.[0]?.name?.full || null,
+    publisher: null,
+    type: "manga",
+    origin: "JP",
+    releaseDate: m.startDate?.month && m.startDate?.year
+      ? `${String(m.startDate.month).padStart(2, "0")}/${m.startDate.year}`
+      : null,
+    language: "EN",
+    sourceUrl: m.siteUrl || null,
+  }));
+}
+
+async function fetchCandidates(seenTitles) {
+  const results = await Promise.allSettled([
+    fetchFumettologica(),
+    fetchMegaNerd(),
+    fetchTheComicsJournal(),
+    fetchTheBeat(),
+    fetchAniList(),
+  ]);
+
+  const sourceNames = ["Fumettologica", "MegaNerd", "The Comics Journal", "The Beat", "AniList"];
+  let candidates = [];
+  results.forEach((r, idx) => {
+    if (r.status === "fulfilled") {
+      console.log(`[AI] ${sourceNames[idx]}: ${r.value.length} candidati`);
+      candidates = candidates.concat(r.value);
+    } else {
+      console.warn(`[AI] ${sourceNames[idx]} fallita: ${r.reason?.message || r.reason}`);
+    }
+  });
+
+  const seenNormalized = new Set(seenTitles.map(normalizeTitle));
+  candidates = candidates.filter(c => c.title && !seenNormalized.has(normalizeTitle(c.title)));
+
+  // Deduplica candidati tra loro (stesso titolo da fonti diverse)
+  const seenInBatch = new Set();
+  candidates = candidates.filter(c => {
+    const key = normalizeTitle(c.title);
+    if (seenInBatch.has(key)) return false;
+    seenInBatch.add(key);
+    return true;
+  });
+
+  return candidates.slice(0, 40);
+}
+
+// ── Chiamata Mistral ─────────────────────────────────────────────────────────
+async function callMistral(prompt) {
+  const res = await fetch(MISTRAL_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${MISTRAL_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: MISTRAL_MODEL,
+      max_tokens: 2000,
+      response_format: { type: "json_object" },
+      messages: [{ role: "user", content: prompt }],
+    }),
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(`Mistral: ${data.error.message}`);
+  return data.choices[0].message.content;
+}
+
+// ── Stadio 2: filtraggio e strutturazione con Mistral ───────────────────────
+async function structureReleases(candidates, favorites, excluded) {
   const favList = favorites.map(f => `- ${f.title} (${f.author})`).join("\n");
-  const skipList = [
-    ...excluded.map(e => e.title),
-    ...seenTitles.slice(0, 30),
-  ];
-  const skipStr = skipList.length ? skipList.join(", ") : "nessuno";
+  const excludedList = excluded.map(e => `${e.title}${e.author ? ` (${e.author})` : ""}`).join(", ") || "nessuno";
+  const candidatesList = candidates
+    .map(c => `- ${c.title} · ${c.author || "?"} · ${c.publisher || "?"} · ${c.type} · ${c.language}`)
+    .join("\n");
 
-  const prompt = `Struttura queste uscite recenti di fumetti come JSON.
+  const prompt = `Sei un esperto di fumetti, manga e graphic novel d'autore. Il tuo compito è SELEZIONARE e STRUTTURARE alcuni dei candidati elencati sotto, NON inventare o suggerire altri titoli dalla tua conoscenza generale.
 
-TITOLI PREFERITI UTENTE:
+REGOLA VINCOLANTE: ogni titolo che restituisci deve essere uno dei titoli presenti nella lista CANDIDATI qui sotto, testualmente. Non includere MAI un titolo solo perché simile o collegato ai preferiti dell'utente: i preferiti servono solo per capire il gusto, non sono fonti di nuovi suggerimenti. Se nessun candidato è abbastanza pertinente, restituisci comunque solo candidati reali (anche con rilevanza "bassa"), mai titoli al di fuori della lista CANDIDATI.
+
+TITOLI PREFERITI UTENTE (segnale di gusto POSITIVO — orientano lo stile, il tono e i temi da privilegiare; NON da riproporre):
 ${favList}
 
-GUSTO: opere autoriali, identità visiva forte, narrativa adulta densa. Niente supereroi mainstream.
-ESCLUDI (già visti o non interessano): ${skipStr}
+GUSTO: narrativa adulta densa, forte identità visiva, nessun supereroe mainstream, ambizioni autoriali, opere complete o ad arco definito.
 
-USCITE TROVATE:
-${rawText}
+TITOLI NON GRADITI (segnale di gusto NEGATIVO — usali per capire quale stile, tono o genere evitare, oltre a escluderli letteralmente se ricompaiono tra i candidati): ${excludedList}
 
-OUTPUT: SOLO array JSON valido, zero markdown, inizia [ finisce ].
-10 oggetti (3 alta, 4 media, 3 bassa rilevanza). Campi brevi (plot max 120 car, whyYouLikeIt max 90 car):
-{"id":"r1","title":"","author":"","publisher":"","type":"manga|comics|bd|manhwa|manhua|gn","origin":"JP|US|FR|BE|IT|ES|KR|CN|GB|DE|AR|BR","releaseDate":"MM/YYYY","language":"IT|EN","plot":"max 120 caratteri","whyYouLikeIt":"max 90 caratteri citando titoli preferiti specifici","relevance":"alta|media|bassa","accentColor":"#RRGGBB","sourceUrl":"URL pagina editore o articolo annuncio, null se non disponibile"}`;
+CANDIDATI (unica fonte ammessa per i titoli da restituire):
+${candidatesList}
 
-  const text = await callClaude(prompt, false);
-  return extractJSON(text);
+Se lo stesso titolo appare in più candidati IT e EN, unificalo in una sola scheda indicando entrambe le lingue disponibili nel campo "language" come "IT+EN".
+
+OUTPUT: rispondi SOLO con un oggetto JSON con chiave "releases" contenente un array, zero markdown.
+12 oggetti scelti ESCLUSIVAMENTE dalla lista CANDIDATI sopra (4 alta, 4 media, 4 bassa rilevanza), con id sequenziali "r1".."r12". Campi brevi (plot max 120 car, whyYouLikeIt max 90 car):
+{"id":"r1","title":"","author":"","publisher":"","type":"manga|comics|bd|manhwa|gn","origin":"JP|US|FR|BE|IT|ES|KR|CN|GB|DE|AR|BR","releaseDate":"MM/YYYY","language":"IT|EN|IT+EN","plot":"max 120 caratteri","whyYouLikeIt":"max 90 caratteri citando titoli preferiti specifici","relevance":"alta|media|bassa","accentColor":"#RRGGBB","sourceUrl":"URL o null"}`;
+
+  const text = await callMistral(prompt);
+  let releases;
+  try {
+    const parsed = JSON.parse(text);
+    if (Array.isArray(parsed)) releases = parsed;
+    else if (Array.isArray(parsed.releases)) releases = parsed.releases;
+    else throw new Error("Formato JSON inatteso da Mistral");
+  } catch {
+    releases = extractJSON(text);
+  }
+
+  // Difesa in profondità: scarta qualsiasi titolo non presente tra i candidati reali,
+  // per evitare che il modello "allucini" suggerimenti dalla sua conoscenza generale
+  // (es. riproponendo titoli già nei preferiti dell'utente).
+  const candidateTitles = new Set(candidates.map(c => normalizeTitle(c.title)));
+  const filtered = releases.filter(r => candidateTitles.has(normalizeTitle(r.title)));
+  if (filtered.length < releases.length) {
+    console.warn(`[AI] Scartati ${releases.length - filtered.length} titoli non presenti tra i candidati (possibile hallucination)`);
+  }
+  return filtered;
 }
 
 // ── Google Books cover (free, no key needed) ──────────────────────────────────
@@ -102,18 +248,15 @@ async function getGoogleBooksCover(title, author) {
 
 // ── Main search function ──────────────────────────────────────────────────────
 async function fetchReleases(favorites, excluded, seenTitles) {
-  console.log("[AI] Starting release search with Anthropic...");
+  console.log("[AI] Starting release search with free sources + Mistral...");
   console.log(`[AI] Excluding ${seenTitles.length} already seen titles`);
 
-  // Step 1: web search
-  const rawText = await searchRecentReleases(favorites, seenTitles);
-  console.log("[AI] Web search done, structuring JSON...");
+  const candidates = await fetchCandidates(seenTitles);
+  console.log(`[AI] Got ${candidates.length} candidates after dedup, structuring with Mistral...`);
 
-  // Step 2: structure as JSON
-  const releases = await structureReleases(rawText, favorites, excluded, seenTitles);
+  const releases = await structureReleases(candidates, favorites, excluded);
   console.log(`[AI] Got ${releases.length} releases, fetching covers...`);
 
-  // Step 3: fetch covers in parallel (Google Books, free)
   const withCovers = await Promise.all(releases.map(async (item) => {
     const coverUrl = await getGoogleBooksCover(item.title, item.author);
     return { ...item, coverUrl: coverUrl || null };

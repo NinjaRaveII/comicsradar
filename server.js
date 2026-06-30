@@ -1,7 +1,6 @@
 require("dotenv").config();
 const express = require("express");
 const rateLimit = require("express-rate-limit");
-const cron = require("node-cron");
 const path = require("path");
 const db = require("./database");
 const { fetchReleases } = require("./ai");
@@ -128,12 +127,6 @@ async function runSearch() {
     searchInProgress = false;
   }
 }
-
-// ── Cron job — every Monday at 9:00 AM ──────────────────────────────────────
-cron.schedule("0 9 * * 1", () => {
-  console.log("[Cron] Scheduled search triggered");
-  runSearch();
-});
 
 // ── Serve frontend for all non-API routes ─────────────────────────────────────
 app.get("*", (req, res) => {
