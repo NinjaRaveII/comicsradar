@@ -269,6 +269,27 @@ prima richiesta potrebbe impiegare diversi secondi a risvegliarsi. Il frontend g
 questo caso: se `/api/data` impiega più di 5s, mostra un messaggio di attesa invece di
 sembrare bloccato.
 
+### Prossimi passi (decisi a fine sessione, da eseguire alla prossima)
+
+Orientamento condiviso: **Fly.io** come prima scelta — piano gratuito con volumi
+persistenti (il DB SQLite sopravvive ai redeploy), deploy via CLI da un Dockerfile Node
+minimale, si addormenta da inattivo riducendo i costi quasi a zero. Compromesso principale:
+cold start (già gestito in UI) + setup CLI iniziale.
+
+Alternativa più semplice da configurare ma meno generosa nel tempo: **Railway** (free
+trial poi a pagamento, ~5$/mese).
+
+Da fare alla prossima sessione:
+1. Decidere definitivamente tra Fly.io e Railway (o altra opzione con storage persistente)
+2. Creare account e configurare il volume persistente per `comicsradar.db`
+3. Scrivere Dockerfile/config di deploy minimale
+4. Impostare le variabili d'ambiente sul provider scelto (`MISTRAL_API_KEY`,
+   `SECRET_TOKEN` — **da cambiare da "changeme" a un valore reale prima di esporre l'app
+   fuori dalla rete locale**, `DB_PATH` puntato al volume)
+5. Primo deploy e verifica end-to-end (ricerca, persistenza dati dopo un redeploy)
+6. Aggiornare l'URL di accesso da iPhone (oggi è solo `http://192.168.1.71:3000`, rete
+   locale — dopo il deploy sarà un URL pubblico raggiungibile da fuori casa)
+
 ---
 
 ## 12. Decisioni Architetturali
