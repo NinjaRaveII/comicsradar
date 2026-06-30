@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ComicsRadar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#080d1a;color:#e2e8f0;font-family:'DM Sans',sans-serif;min-height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px}
+a{color:#60a5fa;text-decoration:none}
+input,select{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;font-size:13px;color:#e2e8f0;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box}
+input::placeholder{color:#475569}
+select option{background:#1e293b;color:#e2e8f0}
+button{font-family:'DM Sans',sans-serif;cursor:pointer;border:none;outline:none}
+
+/* Layout */
+.header{border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(8,13,26,0.9);backdrop-filter:blur(14px);position:sticky;top:0;z-index:100;padding:0 24px}
+.header-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:12px;height:62px;flex-wrap:wrap}
+.logo-title{font-family:'Playfair Display',serif;font-size:19px;font-weight:900;color:#f1f5f9;letter-spacing:-0.02em;line-height:1}
+.logo-sub{font-size:8px;color:#334155;letter-spacing:0.2em;text-transform:uppercase;margin-top:2px}
+nav{display:flex;gap:2px;flex-wrap:wrap}
+.main{max-width:960px;margin:0 auto;padding:24px 20px 60px}
+
+/* Tabs */
+.tab-btn{padding:9px 16px;border-radius:9px;border:none;font-size:13px;font-family:'DM Sans',sans-serif;background:transparent;color:#64748b;transition:all 0.15s;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.tab-btn.active{background:rgba(255,255,255,0.1);color:#f1f5f9;font-weight:700}
+.tab-btn .badge{background:#1e293b;color:#94a3b8;font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px}
+.tab-btn.active .badge{background:#3b82f6;color:#fff}
+
+/* Cards */
+.card{background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.07);border-radius:16px;overflow:hidden;transition:transform 0.18s,box-shadow 0.18s;position:relative}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 36px rgba(0,0,0,0.3)}
+.card.high{border-color:var(--ac,rgba(255,255,255,0.15));}
+.card-top-line{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--ac,#3b82f6),transparent)}
+.card-inner{display:flex}
+.card-img-col{padding:16px;display:flex;flex-direction:column;align-items:center;gap:10px;min-width:130px;flex-shrink:0}
+.card-img-tabs{display:flex;gap:4px}
+.img-tab-btn{padding:3px 10px;border-radius:20px;font-size:9px;font-weight:700;border:1px solid rgba(255,255,255,0.12);background:transparent;color:#64748b;cursor:pointer;transition:all 0.15s}
+.img-tab-btn.active{background:rgba(255,255,255,0.1);color:#f1f5f9;border-color:rgba(255,255,255,0.25)}
+.cover-img{width:90px;height:128px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,0.1);display:block}
+.cover-placeholder{width:90px;height:128px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:1px solid rgba(255,255,255,0.08);font-size:9px;color:rgba(255,255,255,0.3);text-align:center;padding:0 6px;line-height:1.4}
+.interior-img{width:160px;height:110px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,0.1);display:block}
+.card-content{flex:1;padding:16px 18px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.card-badges{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.type-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.rel-dot{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700}
+.rel-dot span{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.card-title{font-family:'Playfair Display',serif;font-size:19px;font-weight:900;color:#f1f5f9;line-height:1.2;letter-spacing:-0.01em}
+.card-meta{font-size:12px;color:#94a3b8;margin-top:3px}
+.card-meta .publisher{color:#64748b}
+.card-meta .date{color:#475569}
+.why-box{border-left:3px solid var(--ac,#3b82f6);border-radius:0 6px 6px 0;padding:7px 11px;font-size:11px;color:#94a3b8;line-height:1.6;font-style:italic}
+.plot-toggle{background:none;border:none;cursor:pointer;font-size:11px;color:#60a5fa;padding:0;text-align:left;width:fit-content}
+.plot-text{font-size:12px;color:#94a3b8;line-height:1.7;margin:0}
+.card-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:2px}
+.action-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid;transition:all 0.15s}
+.action-btn:hover{opacity:0.85}
+.action-btn.active{color:#fff!important}
+
+/* Search hero */
+.search-hero{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:20px;padding:32px 28px;margin-bottom:22px;text-align:center}
+.search-hero h1{font-family:'Playfair Display',serif;font-size:24px;font-weight:900;color:#f1f5f9;margin:0 0 8px;letter-spacing:-0.02em}
+.search-hero p{color:#64748b;font-size:13px;margin:0 0 22px;line-height:1.7}
+.search-btn{padding:13px 36px;border-radius:12px;font-size:14px;font-weight:700;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;box-shadow:0 4px 24px rgba(59,130,246,0.25);transition:all 0.2s;border:none}
+.search-btn:disabled{background:#1e293b;color:#475569;box-shadow:none;cursor:not-allowed}
+.error-box{margin-top:14px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:10px 14px;font-size:12px;color:#f87171;text-align:left;word-break:break-word}
+.status-bar{margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;color:#64748b}
+.spinner{display:inline-block;animation:spin 1s linear infinite}
+
+/* Filters */
+.filters{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
+.filter-label{font-size:11px;color:#475569}
+.filter-pill{padding:5px 13px;border-radius:20px;font-size:11px;font-weight:600;transition:all 0.15s;background:transparent;color:#94a3b8;border:1px solid rgba(255,255,255,0.1)}
+.filter-pill.active{background:rgba(96,165,250,0.15);color:#60a5fa;border-color:#60a5fa}
+.divider{width:1px;height:16px;background:rgba(255,255,255,0.08)}
+
+/* Empty state */
+.empty{text-align:center;padding:60px 20px;color:#475569}
+.empty .icon{font-size:48px;margin-bottom:12px}
+.empty .title{font-family:'Playfair Display',serif;font-size:17px;color:#94a3b8;margin-bottom:6px}
+.empty .sub{font-size:13px}
+
+/* Favorites tab */
+.section-header{margin-bottom:20px}
+.section-header h2{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:#f1f5f9;margin-bottom:4px}
+.section-header p{font-size:13px;color:#64748b}
+.add-form{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:16px 18px;margin-bottom:22px}
+.add-form-title{font-size:11px;font-weight:700;color:#475569;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:12px}
+.add-form-fields{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.add-form-fields input{flex:1 1 150px}
+.add-form-fields select{cursor:pointer}
+.add-form-btn{padding:9px 18px;border-radius:9px;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;font-size:13px;font-weight:700;white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:10px;padding:7px 11px}
+.chip-title{font-size:12px;font-weight:600;color:#e2e8f0;line-height:1.2}
+.chip-author{font-size:10px;color:#64748b}
+.chip-remove{background:none;border:none;cursor:pointer;color:#475569;font-size:15px;padding:0 0 0 2px;line-height:1}
+
+/* To buy tab */
+.list-item{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:13px 16px}
+.list-item-info{flex:1;min-width:0}
+.list-item-title{font-family:'Playfair Display',serif;font-weight:700;font-size:15px;color:#f1f5f9}
+.list-item-meta{font-size:11px;color:#64748b;margin-top:2px}
+.done-btn{background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:5px 10px;color:#34d399;font-size:11px;font-weight:600;white-space:nowrap}
+
+/* Excluded chips */
+.excluded-chip{display:inline-flex;align-items:center;gap:8px;background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.15);border-radius:10px;padding:7px 12px}
+.excluded-chip span{font-size:11px;color:#94a3b8}
+
+/* Last fetch info */
+.last-fetch{font-size:11px;color:#334155;margin-left:auto}
+
+.source-link{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#94a3b8;padding:5px 10px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);transition:all 0.15s;margin-left:auto}
+.source-link:hover{color:#f1f5f9;border-color:rgba(255,255,255,0.25)}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.fadein{animation:fadein 0.3s ease}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <span style="font-size:22px">📚</span>
+    <div style="margin-right:12px">
+      <div class="logo-title">ComicsRadar</div>
+      <div class="logo-sub">scanner di fumetti internazionale</div>
+    </div>
+    <nav id="nav"></nav>
+    <div class="last-fetch" id="lastFetch"></div>
+  </div>
+</div>
+
+<div class="main" id="main"></div>
+
+<script>
+// ── Config ────────────────────────────────────────────────────────────────────
+const TOKEN = new URLSearchParams(location.search).get("token") || "";
+const API = (path) => `/api${path}?token=${TOKEN}`;
+
+const TYPE_META = {
+  manga:  {label:"Manga",        emoji:"⛩",  color:"#e11d48", bg:"rgba(225,29,72,0.12)"},
+  comics: {label:"Comics",       emoji:"💥",  color:"#2563eb", bg:"rgba(37,99,235,0.12)"},
+  bd:     {label:"BD Europea",   emoji:"🥐",  color:"#059669", bg:"rgba(5,150,105,0.12)"},
+  manhwa: {label:"Manhwa",       emoji:"🇰🇷", color:"#7c3aed", bg:"rgba(124,58,237,0.12)"},
+  manhua: {label:"Manhua",       emoji:"🐉",  color:"#b45309", bg:"rgba(180,83,9,0.12)"},
+  gn:     {label:"Graphic Novel",emoji:"📖",  color:"#64748b", bg:"rgba(100,116,139,0.12)"},
+};
+const ORIGIN_FLAG = {JP:"🇯🇵",US:"🇺🇸",FR:"🇫🇷",BE:"🇧🇪",IT:"🇮🇹",ES:"🇪🇸",KR:"🇰🇷",CN:"🇨🇳",GB:"🇬🇧",DE:"🇩🇪",AR:"🇦🇷",BR:"🇧🇷"};
+const REL = {alta:{c:"#10b981",l:"Alta"},media:{c:"#f59e0b",l:"Media"},bassa:{c:"#6b7280",l:"Bassa"}};
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let state = {
+  tab: "releases",
+  favorites: [], toBuy: [], excluded: [], releases: [],
+  lastFetchedAt: null, searchInProgress: false, lastSearchError: null,
+  ftType: "all", ftRel: "all",
+  openPlots: new Set(), imgTabs: {},
+  pollInterval: null,
+};
+
+// ── API helpers ───────────────────────────────────────────────────────────────
+async function apiFetch(path, method = "GET", body = null) {
+  const opts = { method, headers: { "Content-Type": "application/json", "x-token": TOKEN } };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(`/api${path}`, opts);
+  return res.json();
+}
+
+async function loadData() {
+  const data = await apiFetch("/data");
+  if (data.error) { showTokenError(); return; }
+  state.favorites = data.favorites || [];
+  state.toBuy = data.toBuy || [];
+  state.excluded = data.excluded || [];
+  state.releases = data.releases || [];
+  state.lastFetchedAt = data.lastFetchedAt;
+  state.searchInProgress = data.searchInProgress;
+  state.lastSearchError = data.lastSearchError;
+  render();
+}
+
+function showTokenError() {
+  document.getElementById("main").innerHTML = `
+    <div style="text-align:center;padding:80px 20px">
+      <div style="font-size:48px;margin-bottom:16px">🔐</div>
+      <div style="font-family:'Playfair Display',serif;font-size:20px;color:#f1f5f9;margin-bottom:8px">Accesso non autorizzato</div>
+      <div style="font-size:13px;color:#64748b">Assicurati di aprire l'app con il link corretto che include il token.</div>
+    </div>`;
+}
+
+// ── Search polling ────────────────────────────────────────────────────────────
+function startPolling() {
+  if (state.pollInterval) return;
+  state.pollInterval = setInterval(async () => {
+    const status = await apiFetch("/search/status");
+    if (status.searchInProgress !== state.searchInProgress || !status.searchInProgress) {
+      state.searchInProgress = status.searchInProgress;
+      state.lastSearchError = status.lastSearchError;
+      if (!status.searchInProgress) {
+        stopPolling();
+        await loadData();
+      } else {
+        renderSearchHero();
+      }
+    }
+  }, 3000);
+}
+function stopPolling() {
+  clearInterval(state.pollInterval);
+  state.pollInterval = null;
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+async function triggerSearch() {
+  await apiFetch("/search", "POST");
+  state.searchInProgress = true;
+  state.lastSearchError = null;
+  renderSearchHero();
+  startPolling();
+}
+
+async function addFavorite(item) {
+  await apiFetch("/favorites", "POST", item);
+  await loadData();
+}
+async function removeFavorite(id) {
+  await apiFetch(`/favorites/${id}`, "DELETE");
+  await loadData();
+}
+async function addToBuy(item) {
+  await apiFetch("/tobuy", "POST", item);
+  await loadData();
+}
+async function removeToBuy(id) {
+  await apiFetch(`/tobuy/${id}`, "DELETE");
+  await loadData();
+}
+async function addExcluded(item) {
+  await apiFetch("/excluded", "POST", item);
+  await loadData();
+}
+async function removeExcluded(id) {
+  await apiFetch(`/excluded/${id}`, "DELETE");
+  await loadData();
+}
+
+// ── HTML helpers ──────────────────────────────────────────────────────────────
+function typeBadge(type, small) {
+  const m = TYPE_META[type] || TYPE_META.gn;
+  const p = small ? "2px 6px" : "3px 9px";
+  const fs = small ? "9px" : "10px";
+  return `<span class="type-badge" style="font-size:${fs};padding:${p};color:${m.color};background:${m.bg};border:1px solid ${m.color}40">${m.emoji} ${m.label}</span>`;
+}
+function relDot(rel) {
+  const r = REL[rel] || REL.bassa;
+  return `<span class="rel-dot" style="color:${r.c}"><span style="background:${r.c};box-shadow:0 0 5px ${r.c}"></span>${r.l}</span>`;
+}
+function coverImg(url, title, accent, cls, w, h) {
+  const bg = `linear-gradient(145deg,${accent}cc,${accent}44)`;
+  if (!url) return `<div class="${cls}" style="background:${bg};width:${w}px;height:${h}px">📚<br/><span style="font-size:8px">${title}</span></div>`;
+  return `<img class="${cls}" src="${url}" alt="${title}" width="${w}" height="${h}" onerror="this.outerHTML='<div class=\\"${cls}\\" style=\\"background:${bg};width:${w}px;height:${h}px\\">📚</div>'" loading="lazy"/>`;
+}
+
+function savedIn(item) {
+  const r = [];
+  if (state.favorites.find(x => x.id === item.id)) r.push("fav");
+  if (state.toBuy.find(x => x.id === item.id)) r.push("buy");
+  if (state.excluded.find(x => x.id === item.id)) r.push("excl");
+  return r;
+}
+
+function actionBtn(icon, label, color, ghost, activeKey, itemId) {
+  const saved = savedIn({ id: itemId });
+  const isActive = saved.includes(activeKey);
+  const bg = isActive ? color : ghost ? "transparent" : `${color}18`;
+  const col = isActive ? "#fff" : color;
+  const border = `${color}50`;
+  return `<button class="action-btn" style="background:${bg};color:${col};border-color:${border}" onclick="handleAction('${activeKey}','${itemId}')">${icon} ${label}</button>`;
+}
+
+// ── Card render ───────────────────────────────────────────────────────────────
+function renderCard(item) {
+  const ac = item.accentColor || "#334155";
+  const isHigh = item.relevance === "alta";
+  const saved = savedIn(item);
+  const isExcl = saved.includes("excl");
+  const plotOpen = state.openPlots.has(item.id);
+  const imgTab = state.imgTabs[item.id] || "cover";
+  const hasBoth = item.coverUrl && item.interiorUrl;
+  const flag = ORIGIN_FLAG[item.origin] || "🌐";
+
+  const imgSection = hasBoth ? `
+    <div class="card-img-tabs">
+      <button class="img-tab-btn ${imgTab==='cover'?'active':''}" onclick="setImgTab('${item.id}','cover')">🖼 Cover</button>
+      <button class="img-tab-btn ${imgTab==='interior'?'active':''}" onclick="setImgTab('${item.id}','interior')">📄 Tavola</button>
+    </div>
+    ${imgTab === 'cover'
+      ? coverImg(item.coverUrl, item.title, ac, 'cover-img', 90, 128)
+      : coverImg(item.interiorUrl, item.title, ac, 'interior-img', 160, 110)
+    }
+  ` : coverImg(item.coverUrl, item.title, ac, 'cover-img', 90, 128);
+
+  const actionsHtml = isExcl
+    ? `<span style="font-size:11px;color:#475569">Escluso · <button style="background:none;border:none;cursor:pointer;color:#60a5fa;font-size:11px;padding:0" onclick="handleAction('unexcl','${item.id}')">Ripristina</button></span>`
+    : `
+      ${actionBtn("⭐", "Preferiti",        "#f59e0b", false, "fav",  item.id)}
+      ${actionBtn("🛒", "Da comprare",      "#10b981", false, "buy",  item.id)}
+      ${actionBtn("✕",  "Non mi interessa", "#ef4444", true,  "excl", item.id)}
+    `;
+
+  return `
+    <div class="card fadein ${isHigh?'high':''}" style="--ac:${ac};${isHigh?`box-shadow:0 4px 28px ${ac}30`:''};opacity:${isExcl?0.4:1}">
+      ${isHigh && !isExcl ? '<div class="card-top-line"></div>' : ''}
+      <div class="card-inner">
+        <div class="card-img-col" style="background:linear-gradient(160deg,${ac}30,${ac}08)">${imgSection}</div>
+        <div class="card-content">
+          <div class="card-badges">
+            ${typeBadge(item.type)}
+            ${relDot(item.relevance)}
+            <span style="font-size:13px;margin-left:auto">${flag}</span>
+            <span style="font-size:10px;color:#475569">${item.language==='IT'?'🇮🇹 IT':'🇬🇧 EN'}</span>
+          </div>
+          <div>
+            <div class="card-title">${item.title}</div>
+            <div class="card-meta">
+              ${item.author}
+              ${item.publisher ? ` · <span class="publisher">${item.publisher}</span>` : ''}
+              ${item.releaseDate ? ` · <span class="date">${item.releaseDate}</span>` : ''}
+            </div>
+          </div>
+          ${item.whyYouLikeIt ? `<div class="why-box" style="background:${ac}18;border-left-color:${ac}">${item.whyYouLikeIt}</div>` : ''}
+          <button class="plot-toggle" onclick="togglePlot('${item.id}')">${plotOpen?'▲ Nascondi trama':'▼ Leggi la trama'}</button>
+          ${plotOpen ? `<p class="plot-text">${item.plot}</p>` : ''}
+          <div class="card-actions">${actionsHtml}${item.sourceUrl ? `<a href="${item.sourceUrl}" target="_blank" rel="noopener noreferrer" class="source-link">🔗 Fonte</a>` : ''}</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── Event handlers ────────────────────────────────────────────────────────────
+window.togglePlot = (id) => {
+  if (state.openPlots.has(id)) state.openPlots.delete(id);
+  else state.openPlots.add(id);
+  render();
+};
+window.setImgTab = (id, tab) => {
+  state.imgTabs[id] = tab;
+  render();
+};
+window.handleAction = async (action, id) => {
+  const item = state.releases.find(r => r.id === id);
+  if (!item) return;
+  const min = {id:item.id, title:item.title, author:item.author, type:item.type, origin:item.origin, publisher:item.publisher, releaseDate:item.releaseDate};
+  if (action === "fav")    { state.favorites.find(x=>x.id===id) ? await removeFavorite(id) : await addFavorite(min); }
+  if (action === "buy")    { state.toBuy.find(x=>x.id===id)     ? await removeToBuy(id)    : await addToBuy(min);    }
+  if (action === "excl")   { await addExcluded(min); }
+  if (action === "unexcl") { await removeExcluded(id); }
+};
+window.setTab = (tab) => { state.tab = tab; render(); };
+window.setFtType = (v) => { state.ftType = v; render(); };
+window.setFtRel  = (v) => { state.ftRel  = v; render(); };
+window.triggerSearch = triggerSearch;
+window.removeFavorite = removeFavorite;
+window.removeToBuy = removeToBuy;
+window.removeExcluded = removeExcluded;
+
+// Add favorite form submit
+window.submitAddFav = () => {
+  const title  = document.getElementById("fav-title").value.trim();
+  const author = document.getElementById("fav-author").value.trim();
+  const type   = document.getElementById("fav-type").value;
+  const origin = document.getElementById("fav-origin").value;
+  if (!title) return;
+  const id = "u" + Date.now();
+  addFavorite({id, title, author: author||"—", type, origin});
+  document.getElementById("fav-title").value = "";
+  document.getElementById("fav-author").value = "";
+};
+
+// ── Render functions ──────────────────────────────────────────────────────────
+function renderSearchHero() {
+  const hero = document.getElementById("search-hero");
+  if (!hero) return;
+  const lastDate = state.lastFetchedAt
+    ? new Date(state.lastFetchedAt * 1000).toLocaleDateString("it-IT", {day:"numeric",month:"long",year:"numeric"})
+    : null;
+  hero.innerHTML = `
+    <h1>Uscite recenti sui tuoi gusti</h1>
+    <p>AI cerca sul web le uscite più recenti e le filtra in base ai tuoi <strong style="color:#94a3b8">${state.favorites.length} preferiti</strong>.<br/>
+    🇯🇵 · 🇺🇸 indie · 🇫🇷🇧🇪 · 🇮🇹 · 🇪🇸 · 🇰🇷 · 🇨🇳 — solo edizioni in italiano o inglese</p>
+    <button class="search-btn" onclick="triggerSearch()" ${state.searchInProgress?"disabled":""}>
+      ${state.searchInProgress ? '<span class="spinner">⟳</span> Ricerca in corso…' : state.releases.length ? '🔄 Aggiorna ricerca' : '🔍 Cerca uscite recenti'}
+    </button>
+    ${state.searchInProgress ? '<div class="status-bar"><span class="spinner">⟳</span> Sto cercando le uscite recenti, ci vorrà circa un minuto…</div>' : ''}
+    ${state.lastSearchError ? `<div class="error-box"><strong>Errore:</strong> ${state.lastSearchError}</div>` : ''}
+    ${lastDate && !state.searchInProgress ? `<div style="margin-top:12px;font-size:11px;color:#334155">Ultimo aggiornamento: ${lastDate}</div>` : ''}
+  `;
+}
+
+function render() {
+  // Nav
+  const tabs = [
+    {id:"releases", label:"🔍 Cerca",       count:state.releases.length},
+    {id:"favorites",label:"⭐ Preferiti",    count:state.favorites.length},
+    {id:"tobuy",    label:"🛒 Da comprare",  count:state.toBuy.length},
+    {id:"excluded", label:"✕ Esclusi",       count:state.excluded.length},
+  ];
+  document.getElementById("nav").innerHTML = tabs.map(t => `
+    <button class="tab-btn ${state.tab===t.id?'active':''}" onclick="setTab('${t.id}')">
+      ${t.label}${t.count > 0 ? `<span class="badge">${t.count}</span>` : ''}
+    </button>`).join('');
+
+  // Last fetch
+  const lf = document.getElementById("lastFetch");
+  if (state.lastFetchedAt) {
+    const d = new Date(state.lastFetchedAt * 1000).toLocaleDateString("it-IT",{day:"numeric",month:"short"});
+    lf.textContent = `Aggiornato il ${d}`;
+  }
+
+  const main = document.getElementById("main");
+
+  // ── RELEASES TAB ──
+  if (state.tab === "releases") {
+    const filtered = state.releases.filter(r => {
+      if (state.ftType !== "all" && r.type !== state.ftType) return false;
+      if (state.ftRel  !== "all" && r.relevance !== state.ftRel) return false;
+      return true;
+    });
+
+    const typeFilters = ["all","manga","comics","bd","manhwa","gn"].map(t =>
+      `<button class="filter-pill ${state.ftType===t?'active':''}" onclick="setFtType('${t}')">${t==="all"?"Tutti":(TYPE_META[t]?.label||t)}</button>`
+    ).join('');
+    const relFilters = ["all","alta","media","bassa"].map(r =>
+      `<button class="filter-pill ${state.ftRel===r?'active':''}" onclick="setFtRel('${r}')">${r==="all"?"Tutta la rilevanza":r.charAt(0).toUpperCase()+r.slice(1)}</button>`
+    ).join('');
+
+    const filtersHtml = state.releases.length ? `
+      <div class="filters">
+        <span class="filter-label">Tipo:</span>${typeFilters}
+        <div class="divider"></div>
+        ${relFilters}
+        <span style="margin-left:auto;font-size:11px;color:#334155">${filtered.length} titoli</span>
+      </div>` : '';
+
+    const cardsHtml = filtered.length
+      ? `<div style="display:flex;flex-direction:column;gap:12px">${filtered.map(renderCard).join('')}</div>`
+      : `<div class="empty"><div class="icon">${state.releases.length ? '🔎' : '📡'}</div><div class="title">${state.releases.length ? 'Nessun risultato' : 'Pronto a cercare'}</div><div class="sub">${state.releases.length ? 'Prova a cambiare i filtri' : 'Clicca il pulsante per scoprire le uscite recenti'}</div></div>`;
+
+    main.innerHTML = `<div class="search-hero" id="search-hero"></div>${filtersHtml}${cardsHtml}`;
+    renderSearchHero();
+    if (state.searchInProgress) startPolling();
+    return;
+  }
+
+  // ── FAVORITES TAB ──
+  if (state.tab === "favorites") {
+    const typeOpts = Object.entries(TYPE_META).map(([k,v]) => `<option value="${k}">${v.emoji} ${v.label}</option>`).join('');
+    const originOpts = Object.entries(ORIGIN_FLAG).map(([k,v]) => `<option value="${k}">${v} ${k}</option>`).join('');
+    const chipsHtml = state.favorites.map(f => `
+      <div class="chip">
+        <span style="font-size:12px">${ORIGIN_FLAG[f.origin]||'🌐'}</span>
+        <div><div class="chip-title">${f.title}</div><div class="chip-author">${f.author||''}</div></div>
+        ${typeBadge(f.type, true)}
+        <button class="chip-remove" onclick="removeFavorite('${f.id}')">×</button>
+      </div>`).join('');
+
+    main.innerHTML = `
+      <div class="section-header"><h2>I tuoi preferiti</h2><p>Guidano la ricerca AI — più è precisa, migliori saranno i suggerimenti.</p></div>
+      <div class="add-form">
+        <div class="add-form-title">+ Aggiungi titolo</div>
+        <div class="add-form-fields">
+          <input id="fav-title" placeholder="Titolo *" onkeydown="if(event.key==='Enter')submitAddFav()"/>
+          <input id="fav-author" placeholder="Autore" onkeydown="if(event.key==='Enter')submitAddFav()"/>
+          <select id="fav-type">${typeOpts}</select>
+          <select id="fav-origin">${originOpts}</select>
+          <button class="add-form-btn" onclick="submitAddFav()">Aggiungi</button>
+        </div>
+      </div>
+      <div class="chips">${chipsHtml || '<div class="empty"><div class="icon">⭐</div><div class="title">Nessun preferito</div><div class="sub">Aggiungi i titoli che ami</div></div>'}</div>
+    `;
+    return;
+  }
+
+  // ── TO BUY TAB ──
+  if (state.tab === "tobuy") {
+    const itemsHtml = state.toBuy.map(item => `
+      <div class="list-item">
+        <span style="font-size:18px">${ORIGIN_FLAG[item.origin]||'🌐'}</span>
+        <div class="list-item-info">
+          <div class="list-item-title">${item.title}</div>
+          <div class="list-item-meta">${item.author||''}${item.publisher?` · ${item.publisher}`:''}${item.release_date?` · ${item.release_date}`:''}</div>
+        </div>
+        ${typeBadge(item.type, true)}
+        <button class="done-btn" onclick="removeToBuy('${item.id}')">✓ Acquistato</button>
+      </div>`).join('');
+
+    main.innerHTML = `
+      <div class="section-header"><h2>Da comprare 🛒</h2></div>
+      ${state.toBuy.length
+        ? `<div style="display:flex;flex-direction:column;gap:8px">${itemsHtml}</div>`
+        : '<div class="empty"><div class="icon">🛒</div><div class="title">Lista vuota</div><div class="sub">Salva i titoli dalla schermata Cerca</div></div>'}
+    `;
+    return;
+  }
+
+  // ── EXCLUDED TAB ──
+  if (state.tab === "excluded") {
+    const chipsHtml = state.excluded.map(item => `
+      <div class="excluded-chip">
+        <span>${item.title}</span>
+        <button style="background:none;border:none;cursor:pointer;color:#475569;font-size:14px" onclick="removeExcluded('${item.id}')">×</button>
+      </div>`).join('');
+
+    main.innerHTML = `
+      <div class="section-header"><h2>Titoli esclusi ✕</h2><p>Esclusi dalle ricerche future per affinare i suggerimenti.</p></div>
+      ${state.excluded.length
+        ? `<div style="display:flex;flex-wrap:wrap;gap:8px">${chipsHtml}</div>`
+        : '<div class="empty"><div class="icon">✕</div><div class="title">Nessun titolo escluso</div><div class="sub">Clicca "Non mi interessa" per escludere un titolo</div></div>'}
+    `;
+  }
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+if (!TOKEN) {
+  showTokenError();
+} else {
+  loadData();
+}
+</script>
+</body>
+</html>
