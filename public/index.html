@@ -5,119 +5,249 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>ComicsRadar</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,500;1,9..144,600&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap"/>
 <style>
+:root{
+  --ink:#080d1a;
+  --teal:#1f6f64;
+  --teal-soft:#3a9c8c;
+  --champagne:#d4b483;
+  --rose:#b5546b;
+  --smoke:#94a3b8;
+  --text:#f3f0ea;
+  --surface:rgba(255,255,255,0.035);
+  --surface-border:rgba(255,255,255,0.08);
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#080d1a;color:#e2e8f0;font-family:'DM Sans',sans-serif;min-height:100vh}
+body{background:var(--ink);color:#dbe2ea;font-family:'Manrope',sans-serif;min-height:100vh}
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px}
-a{color:#60a5fa;text-decoration:none}
-input,select{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;font-size:13px;color:#e2e8f0;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box}
+a{color:var(--teal-soft);text-decoration:none}
+input,select{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:'Manrope',sans-serif;outline:none;box-sizing:border-box}
 input::placeholder{color:#475569}
-select option{background:#1e293b;color:#e2e8f0}
-button{font-family:'DM Sans',sans-serif;cursor:pointer;border:none;outline:none}
+select option{background:#1e293b;color:var(--text)}
+button{font-family:'Manrope',sans-serif;cursor:pointer;border:none;outline:none}
+:focus-visible{outline:2px solid var(--teal-soft);outline-offset:2px}
 
 /* Layout */
-.header{border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(8,13,26,0.9);backdrop-filter:blur(14px);position:sticky;top:0;z-index:100;padding:0 24px}
+.header{border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(8,13,26,0.85);backdrop-filter:blur(16px);position:sticky;top:0;z-index:100;padding:0 24px}
 .header-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:12px;height:62px;flex-wrap:wrap}
-.logo-title{font-family:'Playfair Display',serif;font-size:19px;font-weight:900;color:#f1f5f9;letter-spacing:-0.02em;line-height:1}
-.logo-sub{font-size:8px;color:#334155;letter-spacing:0.2em;text-transform:uppercase;margin-top:2px}
-nav{display:flex;gap:2px;flex-wrap:wrap}
+.logo-title{font-family:'Fraunces',serif;font-size:19px;font-weight:700;font-style:italic;color:var(--text);letter-spacing:-0.01em;line-height:1}
+.logo-sub{font-family:'IBM Plex Mono',monospace;font-size:8px;color:#334155;letter-spacing:0.2em;text-transform:uppercase;margin-top:3px}
+nav{display:flex;gap:2px;flex-wrap:wrap;position:relative}
+.tab-indicator{position:absolute;top:0;height:100%;background:var(--surface);border:1px solid var(--surface-border);border-radius:9px;transition:left 0.35s cubic-bezier(.22,1,.36,1),width 0.35s cubic-bezier(.22,1,.36,1);z-index:0;pointer-events:none}
 .main{max-width:960px;margin:0 auto;padding:24px 20px 60px}
 
 /* Tabs */
-.tab-btn{padding:9px 16px;border-radius:9px;border:none;font-size:13px;font-family:'DM Sans',sans-serif;background:transparent;color:#64748b;transition:all 0.15s;display:flex;align-items:center;gap:6px;white-space:nowrap}
-.tab-btn.active{background:rgba(255,255,255,0.1);color:#f1f5f9;font-weight:700}
-.tab-btn .badge{background:#1e293b;color:#94a3b8;font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px}
-.tab-btn.active .badge{background:#3b82f6;color:#fff}
+.tab-btn{position:relative;z-index:1;padding:9px 16px;border-radius:9px;border:none;font-size:13px;font-family:'Manrope',sans-serif;background:transparent;color:#64748b;transition:color 0.2s;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.tab-btn.active{color:var(--text);font-weight:700}
+.tab-btn .badge{background:#1e293b;color:var(--smoke);font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;font-family:'IBM Plex Mono',monospace}
+.tab-btn.active .badge{background:var(--teal-soft);color:#06120f}
 
 /* Cards */
-.card{background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.07);border-radius:16px;overflow:hidden;transition:transform 0.18s,box-shadow 0.18s;position:relative}
-.card:hover{transform:translateY(-2px);box-shadow:0 8px 36px rgba(0,0,0,0.3)}
-.card.high{border-color:var(--ac,rgba(255,255,255,0.15));}
-.card-top-line{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--ac,#3b82f6),transparent)}
-.card-inner{display:flex}
-.card-img-col{padding:16px;display:flex;flex-direction:column;align-items:center;gap:10px;min-width:130px;flex-shrink:0}
-.card-img-tabs{display:flex;gap:4px}
+.card{background:var(--surface);border:1px solid var(--surface-border);border-radius:18px;overflow:hidden;transition:transform 0.2s,box-shadow 0.2s,border-color 0.2s;position:relative}
+.card:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(0,0,0,0.32)}
+.card.high{border-color:var(--ac,rgba(255,255,255,0.18));}
+.card-top-line{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--ac,var(--teal-soft)),transparent);filter:blur(0.5px)}
+.card-inner{display:flex;position:relative}
+.card-img-col{padding:16px;display:flex;flex-direction:column;align-items:center;gap:10px;min-width:130px;flex-shrink:0;position:relative}
+.card-aura{position:absolute;inset:-10px;border-radius:50%;background:radial-gradient(circle,var(--ac,var(--teal-soft)) 0%,transparent 70%);filter:blur(22px);opacity:0.45;animation:aura-breathe 7s ease-in-out infinite;pointer-events:none;z-index:0}
+@media (prefers-reduced-motion: reduce){.card-aura{animation:none}}
+.card-img-tabs{display:flex;gap:4px;position:relative;z-index:1}
 .img-tab-btn{padding:3px 10px;border-radius:20px;font-size:9px;font-weight:700;border:1px solid rgba(255,255,255,0.12);background:transparent;color:#64748b;cursor:pointer;transition:all 0.15s}
-.img-tab-btn.active{background:rgba(255,255,255,0.1);color:#f1f5f9;border-color:rgba(255,255,255,0.25)}
-.cover-img{width:90px;height:128px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,0.1);display:block}
-.cover-placeholder{width:90px;height:128px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:1px solid rgba(255,255,255,0.08);font-size:9px;color:rgba(255,255,255,0.3);text-align:center;padding:0 6px;line-height:1.4}
-.interior-img{width:160px;height:110px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,0.1);display:block}
+.img-tab-btn.active{background:var(--surface);color:var(--text);border-color:rgba(255,255,255,0.25)}
+.cover-img{width:90px;height:128px;object-fit:cover;border-radius:10px;border:1px solid rgba(255,255,255,0.1);display:block;position:relative;z-index:1}
+.cover-placeholder{width:90px;height:128px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:1px solid rgba(255,255,255,0.08);font-size:9px;color:rgba(255,255,255,0.3);text-align:center;padding:0 6px;line-height:1.4;position:relative;z-index:1}
+.interior-img{width:160px;height:110px;object-fit:cover;border-radius:10px;border:1px solid rgba(255,255,255,0.1);display:block;position:relative;z-index:1}
 .card-content{flex:1;padding:16px 18px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
 .card-badges{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.type-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:3px 9px;border-radius:20px;white-space:nowrap}
-.rel-dot{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700}
+.type-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:3px 9px;border-radius:20px;white-space:nowrap;font-family:'IBM Plex Mono',monospace}
+.rel-dot{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;font-family:'IBM Plex Mono',monospace}
 .rel-dot span{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-.card-title{font-family:'Playfair Display',serif;font-size:19px;font-weight:900;color:#f1f5f9;line-height:1.2;letter-spacing:-0.01em}
-.card-meta{font-size:12px;color:#94a3b8;margin-top:3px}
+.card-title{font-family:'Fraunces',serif;font-size:clamp(17px,2.4vw,21px);font-weight:600;color:var(--text);line-height:1.2;letter-spacing:-0.01em}
+.card-meta{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--smoke);margin-top:3px}
 .card-meta .publisher{color:#64748b}
 .card-meta .date{color:#475569}
-.why-box{border-left:3px solid var(--ac,#3b82f6);border-radius:0 6px 6px 0;padding:7px 11px;font-size:11px;color:#94a3b8;line-height:1.6;font-style:italic}
-.plot-toggle{background:none;border:none;cursor:pointer;font-size:11px;color:#60a5fa;padding:0;text-align:left;width:fit-content}
-.plot-text{font-size:12px;color:#94a3b8;line-height:1.7;margin:0}
+.why-box{border-left:3px solid var(--ac,var(--teal-soft));border-radius:0 6px 6px 0;padding:7px 11px;font-size:11px;color:var(--smoke);line-height:1.6;font-family:'Fraunces',serif;font-style:italic}
+.plot-toggle{background:none;border:none;cursor:pointer;font-size:11px;color:var(--teal-soft);padding:0;text-align:left;width:fit-content}
+.plot-text{font-size:12px;color:var(--smoke);line-height:1.7;margin:0}
 .card-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:2px}
 .action-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid;transition:all 0.15s}
 .action-btn:hover{opacity:0.85}
 .action-btn.active{color:#fff!important}
 
 /* Search hero */
-.search-hero{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:20px;padding:32px 28px;margin-bottom:22px;text-align:center}
-.search-hero h1{font-family:'Playfair Display',serif;font-size:24px;font-weight:900;color:#f1f5f9;margin:0 0 8px;letter-spacing:-0.02em}
-.search-hero p{color:#64748b;font-size:13px;margin:0 0 22px;line-height:1.7}
-.search-btn{padding:13px 36px;border-radius:12px;font-size:14px;font-weight:700;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;box-shadow:0 4px 24px rgba(59,130,246,0.25);transition:all 0.2s;border:none}
+.search-hero{position:relative;overflow:hidden;background:var(--surface);border:1px solid var(--surface-border);border-radius:22px;padding:36px 28px;margin-bottom:22px;text-align:center}
+.search-hero::before{content:"";position:absolute;inset:0;background:
+    radial-gradient(circle at 18% 20%, color-mix(in srgb, var(--teal) 40%, transparent) 0%, transparent 45%),
+    radial-gradient(circle at 82% 75%, color-mix(in srgb, var(--champagne) 30%, transparent) 0%, transparent 45%);
+  filter:blur(10px);opacity:0.5;pointer-events:none}
+.search-hero h1{position:relative;font-family:'Fraunces',serif;font-size:clamp(22px,4vw,28px);font-weight:600;font-style:italic;color:var(--text);margin:0 0 8px;letter-spacing:-0.01em}
+.search-hero p{position:relative;color:var(--smoke);font-size:13px;margin:0 0 22px;line-height:1.7}
+.search-btn{position:relative;padding:13px 36px;border-radius:12px;font-size:14px;font-weight:700;background:linear-gradient(135deg,var(--teal),var(--teal-soft));color:#fff;box-shadow:0 4px 24px rgba(31,111,100,0.35);transition:all 0.2s;border:none}
+.search-btn:hover:not(:disabled){box-shadow:0 6px 30px rgba(31,111,100,0.5);transform:translateY(-1px)}
 .search-btn:disabled{background:#1e293b;color:#475569;box-shadow:none;cursor:not-allowed}
-.error-box{margin-top:14px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:10px 14px;font-size:12px;color:#f87171;text-align:left;word-break:break-word}
-.status-bar{margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;color:#64748b}
+.error-box{position:relative;margin-top:14px;background:rgba(181,84,107,0.1);border:1px solid rgba(181,84,107,0.25);border-radius:10px;padding:10px 14px;font-size:12px;color:#e29ba9;text-align:left;word-break:break-word}
+.status-bar{position:relative;margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;color:var(--smoke)}
 .spinner{display:inline-block;animation:spin 1s linear infinite}
 
 /* Filters */
 .filters{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
 .filter-label{font-size:11px;color:#475569}
-.filter-pill{padding:5px 13px;border-radius:20px;font-size:11px;font-weight:600;transition:all 0.15s;background:transparent;color:#94a3b8;border:1px solid rgba(255,255,255,0.1)}
-.filter-pill.active{background:rgba(96,165,250,0.15);color:#60a5fa;border-color:#60a5fa}
+.filter-pill{padding:5px 13px;border-radius:20px;font-size:11px;font-weight:600;transition:all 0.15s;background:transparent;color:var(--smoke);border:1px solid rgba(255,255,255,0.1)}
+.filter-pill.active{background:color-mix(in srgb, var(--teal-soft) 18%, transparent);color:var(--teal-soft);border-color:var(--teal-soft)}
 .divider{width:1px;height:16px;background:rgba(255,255,255,0.08)}
 
 /* Empty state */
 .empty{text-align:center;padding:60px 20px;color:#475569}
 .empty .icon{font-size:48px;margin-bottom:12px}
-.empty .title{font-family:'Playfair Display',serif;font-size:17px;color:#94a3b8;margin-bottom:6px}
+.empty .title{font-family:'Fraunces',serif;font-style:italic;font-size:17px;color:var(--smoke);margin-bottom:6px}
 .empty .sub{font-size:13px}
 
 /* Favorites tab */
 .section-header{margin-bottom:20px}
-.section-header h2{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:#f1f5f9;margin-bottom:4px}
+.section-header h2{font-family:'Fraunces',serif;font-size:clamp(20px,3vw,24px);font-weight:600;font-style:italic;color:var(--text);margin-bottom:4px}
 .section-header p{font-size:13px;color:#64748b}
-.add-form{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:16px 18px;margin-bottom:22px}
-.add-form-title{font-size:11px;font-weight:700;color:#475569;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:12px}
+.add-form{background:var(--surface);border:1px solid var(--surface-border);border-radius:14px;padding:16px 18px;margin-bottom:22px}
+.add-form-title{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:#475569;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:12px}
 .add-form-fields{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .add-form-fields input{flex:1 1 150px}
 .add-form-fields select{cursor:pointer}
-.add-form-btn{padding:9px 18px;border-radius:9px;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;font-size:13px;font-weight:700;white-space:nowrap}
+.add-form-btn{padding:9px 18px;border-radius:9px;background:linear-gradient(135deg,var(--teal),var(--teal-soft));color:#fff;font-size:13px;font-weight:700;white-space:nowrap}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:10px;padding:7px 11px}
 .chip-title{font-size:12px;font-weight:600;color:#e2e8f0;line-height:1.2}
-.chip-author{font-size:10px;color:#64748b}
+.chip-author{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#64748b}
 .chip-remove{background:none;border:none;cursor:pointer;color:#475569;font-size:15px;padding:0 0 0 2px;line-height:1}
 
 /* To buy tab */
-.list-item{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:13px 16px}
+.list-item{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--surface-border);border-radius:12px;padding:13px 16px}
 .list-item-info{flex:1;min-width:0}
-.list-item-title{font-family:'Playfair Display',serif;font-weight:700;font-size:15px;color:#f1f5f9}
-.list-item-meta{font-size:11px;color:#64748b;margin-top:2px}
-.done-btn{background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:5px 10px;color:#34d399;font-size:11px;font-weight:600;white-space:nowrap}
+.list-item-title{font-family:'Fraunces',serif;font-weight:600;font-size:15px;color:var(--text)}
+.list-item-meta{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#64748b;margin-top:2px}
 
 /* Excluded chips */
-.excluded-chip{display:inline-flex;align-items:center;gap:8px;background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.15);border-radius:10px;padding:7px 12px}
-.excluded-chip span{font-size:11px;color:#94a3b8}
+.excluded-chip{display:inline-flex;align-items:center;gap:8px;background:rgba(181,84,107,0.07);border:1px solid rgba(181,84,107,0.2);border-radius:10px;padding:7px 12px}
+.excluded-chip span{font-size:11px;color:var(--smoke)}
 
 /* Last fetch info */
-.last-fetch{font-size:11px;color:#334155;margin-left:auto}
+.last-fetch{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#334155;margin-left:auto}
 
-.source-link{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#94a3b8;padding:5px 10px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);transition:all 0.15s;margin-left:auto}
-.source-link:hover{color:#f1f5f9;border-color:rgba(255,255,255,0.25)}
+.source-link{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--smoke);padding:5px 10px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);transition:all 0.15s;margin-left:auto}
+.source-link:hover{color:var(--text);border-color:rgba(255,255,255,0.25)}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@keyframes aura-breathe{0%,100%{opacity:0.4;transform:scale(0.94)}50%{opacity:0.7;transform:scale(1.04)}}
 .fadein{animation:fadein 0.3s ease}
+
+/* ── Mobile (CAMBIO 3) ──────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  /* Problema 1 — Header a due righe */
+  .header-inner {
+    height: auto;
+    padding: 10px 16px 0;
+    flex-wrap: wrap;
+  }
+  .last-fetch {
+    margin-left: auto;
+    font-size: 10px;
+  }
+  nav {
+    width: 100%;
+    justify-content: space-around;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    margin-top: 8px;
+    padding: 4px 0;
+  }
+  .tab-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 8px 4px;
+    font-size: 11px;
+  }
+  .tab-btn .tab-label {
+    display: none;
+  }
+  .main {
+    padding: 16px 12px 80px;
+  }
+
+  /* Problema 2 — Bottoni azione nelle card */
+  .card-inner {
+    flex-direction: column;
+  }
+  .card-img-col {
+    flex-direction: row;
+    min-width: unset;
+    padding: 12px 12px 0;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .card-content {
+    padding: 10px 12px 12px;
+  }
+  .card-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .action-btn {
+    justify-content: center;
+    padding: 10px 8px;
+    font-size: 12px;
+    min-height: 40px;
+  }
+  .source-link {
+    grid-column: 1 / -1;
+    justify-content: center;
+    margin-left: 0;
+  }
+
+  /* Problema 3 — Form "Aggiungi preferito" */
+  .add-form-fields {
+    flex-direction: column;
+  }
+  .add-form-fields input,
+  .add-form-fields select {
+    width: 100%;
+    flex: none;
+    font-size: 16px; /* evita zoom automatico iOS */
+  }
+  .add-form-btn {
+    width: 100%;
+    padding: 12px;
+    text-align: center;
+  }
+
+  /* Problema 4 — Titolo card lungo */
+  .card-title {
+    font-size: clamp(15px, 4vw, 19px);
+  }
+
+  /* Lista "Da comprare" — evita overflow dei bottoni azione su mobile */
+  .list-item {
+    flex-wrap: wrap;
+  }
+  .list-item-info {
+    flex-basis: 100%;
+  }
+
+  /* Problema 5 — Filtri con scroll orizzontale */
+  .filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+  .filter-label {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .filter-pill {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+}
 </style>
 </head>
 <body>
@@ -171,7 +301,21 @@ async function apiFetch(path, method = "GET", body = null) {
 }
 
 async function loadData() {
+  const slowTimer = setTimeout(() => {
+    document.getElementById("main").innerHTML = `
+      <div style="text-align:center;padding:60px 20px;color:#64748b">
+        <div style="font-size:32px;margin-bottom:12px">⏳</div>
+        <div style="font-family:'Fraunces',serif;font-style:italic;font-size:16px;color:#94a3b8;margin-bottom:6px">
+          Il server si sta svegliando…
+        </div>
+        <div style="font-size:12px">
+          Dopo un periodo di inattività impiega circa un minuto. Poi funziona normalmente.
+        </div>
+      </div>`;
+  }, 5000);
+
   const data = await apiFetch("/data");
+  clearTimeout(slowTimer);
   if (data.error) { showTokenError(); return; }
   state.favorites = data.favorites || [];
   state.toBuy = data.toBuy || [];
@@ -187,7 +331,7 @@ function showTokenError() {
   document.getElementById("main").innerHTML = `
     <div style="text-align:center;padding:80px 20px">
       <div style="font-size:48px;margin-bottom:16px">🔐</div>
-      <div style="font-family:'Playfair Display',serif;font-size:20px;color:#f1f5f9;margin-bottom:8px">Accesso non autorizzato</div>
+      <div style="font-family:'Fraunces',serif;font-style:italic;font-size:20px;color:#f1f5f9;margin-bottom:8px">Accesso non autorizzato</div>
       <div style="font-size:13px;color:#64748b">Assicurati di aprire l'app con il link corretto che include il token.</div>
     </div>`;
 }
@@ -247,8 +391,21 @@ async function removeExcluded(id) {
   await apiFetch(`/excluded/${id}`, "DELETE");
   await loadData();
 }
+async function moveToBuyItem(id, target) {
+  const item = state.toBuy.find(x => x.id === id);
+  if (!item) return;
+  const min = {id:item.id, title:item.title, author:item.author, type:item.type, origin:item.origin, publisher:item.publisher, releaseDate:item.release_date};
+  if (target === "fav")  await apiFetch("/favorites", "POST", min);
+  if (target === "excl") await apiFetch("/excluded", "POST", min);
+  await apiFetch(`/tobuy/${id}`, "DELETE");
+  await loadData();
+}
 
 // ── HTML helpers ──────────────────────────────────────────────────────────────
+function googleSearchUrl(title, author) {
+  const q = encodeURIComponent([title, author].filter(Boolean).join(" "));
+  return `https://www.google.com/search?q=${q}`;
+}
 function typeBadge(type, small) {
   const m = TYPE_META[type] || TYPE_META.gn;
   const p = small ? "2px 6px" : "3px 9px";
@@ -293,16 +450,20 @@ function renderCard(item) {
   const hasBoth = item.coverUrl && item.interiorUrl;
   const flag = ORIGIN_FLAG[item.origin] || "🌐";
 
+  const googleUrl = googleSearchUrl(item.title, item.author);
+
   const imgSection = hasBoth ? `
     <div class="card-img-tabs">
       <button class="img-tab-btn ${imgTab==='cover'?'active':''}" onclick="setImgTab('${item.id}','cover')">🖼 Cover</button>
       <button class="img-tab-btn ${imgTab==='interior'?'active':''}" onclick="setImgTab('${item.id}','interior')">📄 Tavola</button>
     </div>
+    <a href="${googleUrl}" target="_blank" rel="noopener noreferrer" title="Cerca su Google: ${item.title}">
     ${imgTab === 'cover'
       ? coverImg(item.coverUrl, item.title, ac, 'cover-img', 90, 128)
       : coverImg(item.interiorUrl, item.title, ac, 'interior-img', 160, 110)
     }
-  ` : coverImg(item.coverUrl, item.title, ac, 'cover-img', 90, 128);
+    </a>
+  ` : `<a href="${googleUrl}" target="_blank" rel="noopener noreferrer" title="Cerca su Google: ${item.title}">${coverImg(item.coverUrl, item.title, ac, 'cover-img', 90, 128)}</a>`;
 
   const actionsHtml = isExcl
     ? `<span style="font-size:11px;color:#475569">Escluso · <button style="background:none;border:none;cursor:pointer;color:#60a5fa;font-size:11px;padding:0" onclick="handleAction('unexcl','${item.id}')">Ripristina</button></span>`
@@ -316,7 +477,7 @@ function renderCard(item) {
     <div class="card fadein ${isHigh?'high':''}" style="--ac:${ac};${isHigh?`box-shadow:0 4px 28px ${ac}30`:''};opacity:${isExcl?0.4:1}">
       ${isHigh && !isExcl ? '<div class="card-top-line"></div>' : ''}
       <div class="card-inner">
-        <div class="card-img-col" style="background:linear-gradient(160deg,${ac}30,${ac}08)">${imgSection}</div>
+        <div class="card-img-col" style="background:linear-gradient(160deg,${ac}30,${ac}08)"><div class="card-aura"></div>${imgSection}</div>
         <div class="card-content">
           <div class="card-badges">
             ${typeBadge(item.type)}
@@ -325,7 +486,7 @@ function renderCard(item) {
             <span style="font-size:10px;color:#475569">${item.language==='IT'?'🇮🇹 IT':'🇬🇧 EN'}</span>
           </div>
           <div>
-            <div class="card-title">${item.title}</div>
+            <a href="${googleUrl}" target="_blank" rel="noopener noreferrer" class="card-title" style="display:block" title="Cerca su Google: ${item.title}">${item.title}</a>
             <div class="card-meta">
               ${item.author}
               ${item.publisher ? ` · <span class="publisher">${item.publisher}</span>` : ''}
@@ -366,6 +527,7 @@ window.setFtRel  = (v) => { state.ftRel  = v; render(); };
 window.triggerSearch = triggerSearch;
 window.removeFavorite = removeFavorite;
 window.removeToBuy = removeToBuy;
+window.moveToBuyItem = moveToBuyItem;
 window.removeExcluded = removeExcluded;
 
 // Add favorite form submit
@@ -404,15 +566,23 @@ function renderSearchHero() {
 function render() {
   // Nav
   const tabs = [
-    {id:"releases", label:"🔍 Cerca",       count:state.releases.length},
-    {id:"favorites",label:"⭐ Preferiti",    count:state.favorites.length},
-    {id:"tobuy",    label:"🛒 Da comprare",  count:state.toBuy.length},
-    {id:"excluded", label:"✕ Esclusi",       count:state.excluded.length},
+    {id:"releases", emoji:"🔍", label:"Cerca",       count:state.releases.length},
+    {id:"favorites",emoji:"⭐", label:"Preferiti",    count:state.favorites.length},
+    {id:"tobuy",    emoji:"🛒", label:"Da comprare",  count:state.toBuy.length},
+    {id:"excluded", emoji:"✕",  label:"Esclusi",       count:state.excluded.length},
   ];
-  document.getElementById("nav").innerHTML = tabs.map(t => `
+  const navEl = document.getElementById("nav");
+  navEl.innerHTML = `<div class="tab-indicator" id="tabIndicator"></div>` + tabs.map(t => `
     <button class="tab-btn ${state.tab===t.id?'active':''}" onclick="setTab('${t.id}')">
-      ${t.label}${t.count > 0 ? `<span class="badge">${t.count}</span>` : ''}
+      ${t.emoji} <span class="tab-label">${t.label}</span>${t.count > 0 ? `<span class="badge">${t.count}</span>` : ''}
     </button>`).join('');
+
+  const activeBtn = navEl.querySelector('.tab-btn.active');
+  const indicator = document.getElementById('tabIndicator');
+  if (activeBtn && indicator) {
+    indicator.style.left = activeBtn.offsetLeft + 'px';
+    indicator.style.width = activeBtn.offsetWidth + 'px';
+  }
 
   // Last fetch
   const lf = document.getElementById("lastFetch");
@@ -491,11 +661,12 @@ function render() {
       <div class="list-item">
         <span style="font-size:18px">${ORIGIN_FLAG[item.origin]||'🌐'}</span>
         <div class="list-item-info">
-          <div class="list-item-title">${item.title}</div>
+          <a href="${googleSearchUrl(item.title, item.author)}" target="_blank" rel="noopener noreferrer" class="list-item-title" style="display:block" title="Cerca su Google: ${item.title}">${item.title}</a>
           <div class="list-item-meta">${item.author||''}${item.publisher?` · ${item.publisher}`:''}${item.release_date?` · ${item.release_date}`:''}</div>
         </div>
         ${typeBadge(item.type, true)}
-        <button class="done-btn" onclick="removeToBuy('${item.id}')">✓ Acquistato</button>
+        <button class="action-btn" style="background:transparent;color:#f59e0b;border-color:#f59e0b50" onclick="moveToBuyItem('${item.id}','fav')">⭐ Preferiti</button>
+        <button class="action-btn" style="background:transparent;color:#ef4444;border-color:#ef444450" onclick="moveToBuyItem('${item.id}','excl')">✕ Non mi interessa</button>
       </div>`).join('');
 
     main.innerHTML = `
